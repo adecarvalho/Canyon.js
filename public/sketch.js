@@ -1,6 +1,6 @@
 const CANVAS_WIDTH = 800
 const CANVAS_HEIGHT = 480
-const SPEED_MIN=300
+const SPEED_MIN = 200
 
 const gInput = new InputManager()
 const gStages = new Map()
@@ -8,10 +8,6 @@ const gsm = new StageManager()
 let gTextures = {}
 let gSounds = {}
 
-let fps = 0
-let timer = 0
-
-let p = undefined
 
 //
 function preload() {
@@ -23,12 +19,11 @@ function preload() {
 	gTextures["pillar_down"] = loadImage("assets/images/pillar_bas.png")
 	gTextures["pillar_up"] = loadImage("assets/images/pillar_haut.png")
 
-	gTextures["explosion"]=loadImage("assets/images/explosion.png")
+	gTextures["explosion"] = loadImage("assets/images/explosion.png")
 
-	gSounds["boom"]=loadSound("assets/sounds/boom.ogg")
+	gSounds["boom"] = loadSound("assets/sounds/boom.ogg")
 	gSounds["game"] = loadSound("assets/musics/plane.ogg")
 	gSounds["intro"] = loadSound("assets/musics/underground.ogg")
-	
 }
 
 //
@@ -37,13 +32,12 @@ function setup() {
 	createCanvas(CANVAS_WIDTH, CANVAS_HEIGHT)
 	background(50)
 
-	gStages.set("introduction", new IntroStage(gsm))
+	gStages.set("intro", new IntroStage(gsm))
 	gStages.set("play", new PlayStage(gsm))
-	gStages.set("gameover",new OverStage(gsm))
+	gStages.set("gameover", new GameOverStage(gsm))
 
-	gsm.pushStage(gStages.get("introduction"))
+	gsm.pushStage(gStages.get("intro"))
 
-	p = createP('Fps=');
 }
 
 let ancien = 0
@@ -56,14 +50,6 @@ function draw() {
 	now = millis()
 	dt = (now - ancien) / 1000
 	//
-	timer += dt
-	fps++
-	if (timer > 1) {
-		//console.log('fps= '+fps)
-		p.html("Fps=" + fps)
-		fps = 0
-		timer = 0
-	}
 	gsm.update(dt)
 
 	//ras inputManager
