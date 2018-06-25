@@ -1,8 +1,17 @@
 /*
 GameEngine.js
 use with p5.js
-version 0.18.05.13
+version 0.18.06.14
 author A De Carvalho
+
+Entity:
++getSpeedModule()
+Label:
++font arial
+ScoreManager:
+-decrementsLives()
+
+
 */
 //************* */
 //************ */
@@ -59,6 +68,7 @@ class RecBounds {
         this.yi = yi
         this.w = this.w - 2 * this.xi
         this.h = this.h - 2 * this.yi
+
     }
 }
 //*********** */
@@ -135,6 +145,11 @@ class Entity {
 
     setBottom(bottom) {
         this.y = bottom - this.height
+    }
+
+    getSpeedModule() {
+        let mod = sqrt(this.dx * this.dx + this.dy * this.dy)
+        return mod
     }
 
     inflate(xi, yi) {
@@ -504,9 +519,8 @@ class ScoreManager {
         this.points = 0
         this.lives = 3
         this.label = new Label()
-        this.label.setSize(32)
-        //this.label.setColor(55, 55, 55, 200)
-        this.label.setColor(color(55, 55, 55, 200))
+        this.label.setSize(24)
+        this.label.setColor(color(55, 55, 55))
     }
 
     setName(zename) {
@@ -539,7 +553,7 @@ class ScoreManager {
         }
     }
 
-    decrementsLives(amt = 1) {
+    decrementsLives() {
         this.lives--
     }
 
@@ -562,7 +576,7 @@ class ScoreManager {
         this.label.setText("Points: " + this.points)
         this.label.render(10, 30)
         this.label.setText(this.name)
-        this.label.render(10, 70)
+        this.label.render(200, 30)
 
         fill(255, 50, 50, 200)
         strokeWeight(0)
@@ -583,7 +597,8 @@ class Label {
         this.size = size
         this.visible = true
         this.style = BOLD //NORMAL ITALIC BOLD
-        this.rgbColor = color(255, 255, 255, 255)
+        this.rgbColor = color(255, 255, 255)
+        this.align = LEFT
     }
 
     setVisible(visible) {
@@ -602,11 +617,18 @@ class Label {
         this.size = size
     }
 
+    setAlign(mode) {
+        this.align = mode
+    }
+
     render(xp, yp) {
         if (this.visible) {
+            textFont("arial")
+            textAlign(this.align)
             textSize(this.size)
             textStyle(this.style)
             fill(this.rgbColor)
+            noStroke()
             text(this.txt, xp, yp)
         }
     }
