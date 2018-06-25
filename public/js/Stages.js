@@ -1,4 +1,107 @@
-//
+//************************** */
+class PlayStage extends Stage {
+    constructor(gsm) {
+        super(gsm)
+        this.score = new ScoreManager()
+
+        this.paysage = new Paysage(0, 0)
+
+        this.plane = new Plane(CANVAS_WIDTH / 2 - 100, CANVAS_HEIGHT / 2)
+
+        this.rocktab = []
+
+        this.rocktab.push(new Rock("TOP"))
+
+        this.rocktab.push(new Rock("BOTTOM"))
+
+        this.pillars = new Pillars(this.plane, this.score)
+    }
+
+
+    update(dt) {
+        this.paysage.update(dt)
+
+        if (this.plane.state === "IDLE" && keyIsPressed) {
+            this.pillars.newWave()
+        }
+
+        for (let i = 0; i < this.rocktab.length; i++) {
+            this.rocktab[i].update(dt)
+        }
+
+        this.plane.update(dt)
+
+        this.pillars.update(dt)
+
+        this.collisions()
+
+        this.isGameOver()
+    }
+
+    isGameOver() {
+        if (this.score.isGameOver()) {
+
+            let options={
+                name:this.score.getName(),
+                points:this.score.getPoints()
+            }
+
+            this.gsm.changeStage(gStages.get("gameover"),options)
+
+        }
+    }
+
+    collisions() {
+        //rock ship
+        for (const item of this.rocktab) {
+            if (this.plane.state === "LIVE" && this.plane.collides(item)) {
+                this.plane.touched()
+                this.score.decrementsLives()
+
+                this.pillars.newWave()
+                return
+            }
+        }
+
+        //ship pillar
+        this.pillars.isCollidePlane()
+    }
+
+    render() {
+        this.paysage.render()
+
+        this.pillars.render()
+
+        for (const item of this.rocktab) {
+            item.render()
+        }
+
+        this.plane.render()
+
+        this.score.render()
+    }
+
+    onEnter(datas) {
+
+        if (datas != undefined) {
+            this.score.setName(datas.name)
+        }
+
+        gSounds["game"].setLoop(true)
+        gSounds["game"].setVolume(0.2)
+        gSounds["game"].play()
+
+        this.plane.reset()
+        this.pillars.newWave()
+        this.score.reset()
+    }
+
+    onExit() {
+        gSounds["game"].setLoop(false)
+        gSounds["game"].stop()
+    }
+}
+/**************************** */
 class IntroStage extends Stage {
     constructor(gsm) {
         super(gsm)
@@ -11,7 +114,7 @@ class IntroStage extends Stage {
 
         this.label = new Label()
         this.label.setSize(50)
-        this.label.setColor(color(55,55,50,200))
+        this.label.setColor(color(55, 55, 50, 200))
 
         this.name = "aaa"
     }
@@ -25,14 +128,14 @@ class IntroStage extends Stage {
         }
 
         if (gInput.isKeyPressed(ENTER)) {
-            gsm.changeStage(new PlayStage())
+
             this.name = "" + char(this.tab[0]) + char(this.tab[1]) + char(this.tab[2])
 
-            let datas = {
-                "name": this.name
+            let options = {
+                name: this.name
             }
 
-            gsm.changeStage(gStages.get("play"), datas)
+            this.gsm.changeStage(gStages.get("play"), options)
         }
 
         if (gInput.isKeyPressed(LEFT_ARROW) && this.indice > 0) {
@@ -57,7 +160,7 @@ class IntroStage extends Stage {
             }
         }
     }
-    
+
     render() {
         this.paysage.render()
 
@@ -72,6 +175,7 @@ class IntroStage extends Stage {
 
     onEnter() {
         gSounds["intro"].setLoop(true)
+        gSounds['intro'].setVolume(0.2)
         gSounds["intro"].play()
     }
 
@@ -110,147 +214,47 @@ class IntroStage extends Stage {
         }
     }
 }
-//*******************************/
-class OverStage extends Stage {
+/******************************* */
+class GameOverStage extends Stage {
     constructor(gsm) {
         super(gsm)
-        this.paysage = new Paysage(0,0)
+        this.paysage = new Paysage(0, 0)
         this.label = new Label()
         this.label.setSize(50)
-        this.label.setColor(color(55,55,55,200))
+        this.label.setColor(color(55, 55, 55, 200))
         this.score = new ScoreManager()
     }
 
     update(dt) {
         if (gInput.isKeyPressed(ENTER)) {
 
-            gsm.changeStage(gStages.get("introduction"))
+            this.gsm.changeStage(gStages.get("intro"))
         }
     }
 
     render() {
         this.paysage.render()
 
-        this.label.setText("Game Over " + this.score.getName())
-        this.label.render(CANVAS_WIDTH / 4, CANVAS_HEIGHT / 4)
+        if (this.score != undefined) {
+            this.label.setText("Game Over " + this.score.getName())
+            this.label.render(CANVAS_WIDTH / 4, CANVAS_HEIGHT / 4)
 
-        this.label.setText("Score= " + this.score.getPoints() + " pts")
-        this.label.render(CANVAS_WIDTH / 4, CANVAS_HEIGHT / 2)
+            this.label.setText("Score= " + this.score.getPoints() + " pts")
+            this.label.render(CANVAS_WIDTH / 4, CANVAS_HEIGHT / 2)
 
-        this.label.setText('Press a Enter to Start')
-        this.label.render(CANVAS_WIDTH / 4, 100 + CANVAS_HEIGHT / 2)
+            this.label.setText('Press Enter to Start')
+            this.label.render(CANVAS_WIDTH / 4, 100 + CANVAS_HEIGHT / 2)
+        }
+
     }
 
     onEnter(datas) {
-        this.score.setName(datas["name"])
-        this.score.setPoints(datas["points"])
-    }
-
-    onExit() {
-        //gSounds["play"].setLoop(false)
-        //gSounds["play"].stop()
-    }
-}
-//***************************** */
-class PlayStage extends Stage {
-    constructor(gsm) {
-        super(gsm)
-        this.score = new ScoreManager()
-
-        this.paysage = new Paysage(0, 0)
-
-        this.ship = new Ship(CANVAS_WIDTH / 2 - 100, CANVAS_HEIGHT / 2)
-
-        this.rocktab = []
-
-        this.rocktab.push(new Rock(0, "TOP"))
-
-        this.rocktab.push(new Rock(0, "BOTTOM"))
-
-        this.pillars = new Pillars(this.ship, this.score)
-    }
-
-
-    update(dt) {
-        this.paysage.update(dt)
-
-        if (this.ship.state === "IDLE" && keyIsPressed) {
-            this.pillars.newWave()
-        }
-
-        for (let i = 0; i < this.rocktab.length; i++) {
-            this.rocktab[i].update(dt)
-        }
-
-        this.ship.update(dt)
-
-        this.pillars.update(dt)
-
-        this.collisions()
-
-        this.isGameOver()
-
-        this.score.update(dt)
-    }
-
-    isGameOver()
-    {
-        if(this.score.isGameOver())
-        {
-            let datas = {
-                "name": this.score.getName(),
-                "points":this.score.getPoints()
-            }
-            gsm.changeStage(gStages.get("gameover"),datas)
-        }
-    }
-
-    collisions() {
-        //rock ship
-        for (const item of this.rocktab) {
-            if (this.ship.state === "LIVE" && this.ship.collides(item)) {
-                this.ship.touched()
-                this.score.decrementsLives()
-
-                this.pillars.newWave()
-                return
-            }
-        }
-
-        //ship pillar
-        this.pillars.isCollideShip()
-    }
-
-    render() {
-        this.paysage.render()
-
-        this.pillars.render()
-
-        for (const item of this.rocktab) {
-            item.render()
-        }
-
-        this.ship.render()
-
-        this.score.render()
-    }
-
-    onEnter(datas) {
-        gSounds["game"].setLoop(true)
-        gSounds["game"].play()
-
         if (datas != undefined) {
             this.score.setName(datas.name)
-            this.score.reset()
+            this.score.setPoints(datas.points)
         }
-
-        this.ship.reset()
-        this.pillars.newWave()
     }
 
-    onExit() {
-        gSounds["game"].setLoop(false)
-        gSounds["game"].stop()
-    }
+    onExit() {}
 }
-//fin stages
+//**

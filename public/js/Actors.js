@@ -20,7 +20,7 @@ class Paysage {
     }
 }
 //*************************** */
-class Ship extends Entity {
+class Plane extends Entity {
     constructor(xp, yp) {
         super(xp, yp, undefined, 90, 75)
 
@@ -89,13 +89,14 @@ class Ship extends Entity {
         if (this.getTop() < 0) {
             this.setTop(0)
         }
-
+        //echap
         this.echap.move(this.x, this.y + 20)
-
         this.echap.update(dt)
+
         this.flyanimation.update(dt)
 
         this.explosion.update(dt)
+
         if (this.state === "TOUCHED" && this.explosion.isPlaying() == false) {
             this.state = "IDLE"
             this.x = this.xinit
@@ -106,7 +107,6 @@ class Ship extends Entity {
     }
 
     render() {
-        // super.render()
         if (this.state === "LIVE" || this.state === "IDLE") {
             this.echap.render()
             this.flyanimation.render(this.x, this.y)
@@ -124,9 +124,7 @@ class Ship extends Entity {
 }
 //************************ */
 class Rock extends Entity {
-    constructor(xp, type) {
-
-        let xr = random(-CANVAS_WIDTH, 0)
+    constructor(type) {
 
         switch (type) {
             case "TOP":
@@ -134,7 +132,7 @@ class Rock extends Entity {
                 break;
 
             case "BOTTOM":
-                super(xr, CANVAS_HEIGHT - 71, gTextures["rock_down"])
+                super(0, CANVAS_HEIGHT - 71, gTextures["rock_down"])
                 break
 
             default:
@@ -143,16 +141,17 @@ class Rock extends Entity {
         this.type = type
         this.speed = SPEED_MIN
         this.dx = -this.speed
-        this.xinit = xr
 
-        this.inflate(0, 10)
+        this.inflate(0, 5)
     }
 
     update(dt) {
         super.update(dt)
 
         //limites
-        this.x = (this.x % CANVAS_WIDTH)
+        if (this.getRight() < CANVAS_WIDTH) {
+            this.x = 0
+        }
     }
 
     render() {
@@ -212,13 +211,13 @@ class Pillar extends Entity {
 }
 //*********************** */
 class Pillars {
-    constructor(ship, score = undefined) {
+    constructor(plane, score = undefined) {
 
         if (score != undefined) {
             this.score = score
         }
 
-        this.ship = ship
+        this.plane = plane
 
         this.pillar_up = new Pillar(0, "UP")
 
@@ -256,21 +255,21 @@ class Pillars {
         if (this.pillar_down.isTouchLeft() || this.pillar_up.isTouchLeft()) {
             this.reset()
             this.action()
-            if (this.ship.state === "LIVE") {
+            if (this.plane.state === "LIVE") {
                 this.score.incrementsPoints(1)
             }
         }
     }
 
-    isCollideShip() {
-        if (this.ship.state != "LIVE") {
+    isCollidePlane() {
+        if (this.plane.state != "LIVE") {
             return
         }
 
-        if (this.pillar_down.collides(this.ship) || this.pillar_up.collides(this.ship)) {
+        if (this.pillar_down.collides(this.plane) || this.pillar_up.collides(this.plane)) {
             this.reset()
             this.action()
-            this.ship.touched()
+            this.plane.touched()
             this.score.decrementsLives()
             return true
         } else {
